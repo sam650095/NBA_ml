@@ -17,7 +17,7 @@ def getgameinfo(year):
 
 all_seasons_data = []
 
-for i in range(2019, 2024):
+for i in range(2020, 2022):
     season_data = getgameinfo(i)
     all_seasons_data.append(season_data)
 
