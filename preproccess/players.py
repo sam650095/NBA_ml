@@ -5,30 +5,8 @@ from nba_api.stats.endpoints import playergamelog
 from sklearn.impute import KNNImputer
 import time
 
-def calculate_per(player_stats):
-    # PER
-    if 'PTS' in player_stats and 'AST' in player_stats and 'REB' in player_stats and 'STL' in player_stats and 'BLK' in player_stats and 'FGA' in player_stats and 'FGM' in player_stats and 'FTA' in player_stats and 'FTM' in player_stats and 'TOV' in player_stats and 'GP' in player_stats:
-        per = ((player_stats['PTS'] + player_stats['AST'] + player_stats['REB'] + player_stats['STL'] + player_stats['BLK']) - (player_stats['FGA'] - player_stats['FGM']) - (player_stats['FTA'] - player_stats['FTM']) - player_stats['TOV']) / player_stats['GP']
-        return per
-    else:
-        return None
-def playersum_data(player_id, num_games=5): # 設定選手至少參加過有5場比賽
-    # 取得球員比賽數據 從2020到2022
-    gamelog = playergamelog.PlayerGameLog(player_id=player_id, season='2020-22').get_data_frames()[0]
-    # 判斷如果選手的場次低於5場，則將他設置為NaN
-    if len(gamelog) >= num_games:
-        # 找尋近期5場比賽
-        recent_stats = gamelog.head(num_games)
-        # 並將他加起來
-        sum_stats = recent_stats.sum(numeric_only=True)
-        # 場次
-        sum_stats['GP'] = num_games
-        # 計算他的PER
-        sum_stats['PER'] = calculate_per(sum_stats)
-        return sum_stats
-    else:
-        return pd.Series(dtype=float) 
-
+# 取得隊伍資訊
+# 因為要去取這支隊伍每一個球員的數據
 def team_data(team_id, team_name):
     # 用team_id去把所有球員的資料取下來
     roster = commonteamroster.CommonTeamRoster(team_id=team_id).get_data_frames()[0]
@@ -48,9 +26,37 @@ def team_data(team_id, team_name):
         return team_stats
     else:
         return pd.DataFrame()
+# 計算每一個球員5場比賽的數據總和
+def playersum_data(player_id, num_games=5): # num_games設定選手至少參加過有5場比賽
+    # 取得球員比賽數據 從2020到2022
+    gamelog = playergamelog.PlayerGameLog(player_id=player_id, season='2020-22').get_data_frames()[0]
+    # 判斷如果選手的場次低於5場，則將他設置為NaN
+    if len(gamelog) >= num_games:
+        # 找尋近期5場比賽
+        recent_stats = gamelog.head(num_games)
+        # 並將他加起來
+        sum_stats = recent_stats.sum(numeric_only=True)
+        # 場次
+        sum_stats['GP'] = num_games
+        # 計算他的PER
+        sum_stats['PER'] = calculate_per(sum_stats)
+        return sum_stats
+    else:
+        return pd.Series(dtype=float) 
+# 計算每一個球員的效率值(PER)
+# 因為nba_api並沒有PER，所以要特別計算
+def calculate_per(player_stats):
+    # PER
+    if 'PTS' in player_stats and 'AST' in player_stats and 'REB' in player_stats and 'STL' in player_stats and 'BLK' in player_stats and 'FGA' in player_stats and 'FGM' in player_stats and 'FTA' in player_stats and 'FTM' in player_stats and 'TOV' in player_stats and 'GP' in player_stats:
+        per = ((player_stats['PTS'] + player_stats['AST'] + player_stats['REB'] + player_stats['STL'] + player_stats['BLK']) - (player_stats['FGA'] - player_stats['FGM']) - (player_stats['FTA'] - player_stats['FTM']) - player_stats['TOV']) / player_stats['GP']
+        return per
+    else:
+        return None
+
+# 開始
 # 取得所有隊伍
 nba_teams = teams.get_teams()
-# 所有隊伍的資料
+# 要儲存所有隊伍資料的地方
 all_teams_stats = []
 m = 0
 for team in nba_teams:
