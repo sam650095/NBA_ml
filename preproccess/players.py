@@ -15,6 +15,7 @@ def team_data(team_id, team_name):
         player_id = row['PLAYER_ID']
         # 呼叫playersum_data，取得總和數值
         player_stats = playersum_data(player_id)
+        player_stats['TEAM_ID'] = team_id 
         player_stats['Team'] = team_name 
         all_players_stats.append(player_stats)
         # 因為怕api訪問限制，因此將他間隔0.6
@@ -27,12 +28,12 @@ def team_data(team_id, team_name):
     else:
         return pd.DataFrame()
 # 計算每一個球員5場比賽的數據總和
-def playersum_data(player_id, num_games=5): # num_games設定選手至少參加過有5場比賽
-    # 取得球員比賽數據 從2020到2022
-    gamelog = playergamelog.PlayerGameLog(player_id=player_id, season='2020-22').get_data_frames()[0]
-    # 判斷如果選手的場次低於5場，則將他設置為NaN
+def playersum_data(player_id, num_games=10): # num_games設定選手至少參加過有10場比賽
+    # 取得球員比賽數據 從2018到2023
+    gamelog = playergamelog.PlayerGameLog(player_id=player_id, season='2018-23').get_data_frames()[0]
+    # 判斷如果選手的場次低於10場，則將他設置為NaN
     if len(gamelog) >= num_games:
-        # 找尋近期5場比賽
+        # 找尋近期10場比賽
         recent_stats = gamelog.head(num_games)
         # 並將他加起來
         sum_stats = recent_stats.sum(numeric_only=True)
@@ -58,16 +59,16 @@ def calculate_per(player_stats):
 nba_teams = teams.get_teams()
 # 要儲存所有隊伍資料的地方
 all_teams_stats = []
-m = 0
+# m = 0
 for team in nba_teams:
     team_id = team['id']
     team_name = team['full_name']
     # 呼叫這支隊伍的資料
     team_stats = team_data(team_id, team_name)
     all_teams_stats.append(team_stats)
-    m+=1
-    if(m == 10):
-        break
+    # m+=1
+    # if(m == 10):
+    #     break
 
 complete_data = pd.concat(all_teams_stats, ignore_index=True)
 
@@ -76,7 +77,7 @@ columns_to_drop = ['PLUS_MINUS', 'VIDEO_AVAILABLE']
 complete_data = complete_data.drop(columns=columns_to_drop, errors='ignore')
 
 #刪掉所有NaN值
-complete_data = complete_data.dropna(how='all', subset=complete_data.columns.difference(['Team']))
+complete_data = complete_data.dropna(how='all', subset=complete_data.columns.difference(['Team','TEAM_ID']))
 #確定已經沒有NaN
 #print(complete_data.isna().any())
 
