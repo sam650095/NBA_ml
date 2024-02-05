@@ -6,9 +6,8 @@ from sklearn.svm import SVR
 # 取資料
 data = pd.read_csv('./data/final_data.csv')
 # 取目標變數
-X = data[['Weighted_PER']]  
-y = data['WinPct'] 
-
+X = data[['Weighted_PER', 'FG_PCT', 'FG3_PCT', 'FT_PCT', 'REB', 'AST', 'STL', 'BLK', 'TOV', 'PF']]
+y = data['PTS']
 # 分割資料集
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
