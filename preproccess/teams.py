@@ -27,7 +27,7 @@ team_avg_stats.reset_index(inplace=True)
 columns_to_keep = ['TEAM_ID', 'FG_PCT', 'FG3_PCT', 'FT_PCT', 'REB', 'AST', 'STL', 'BLK', 'TOV', 'PF', 'PTS']
 team_avg_stats = team_avg_stats[columns_to_keep]
 
-players_data = pd.read_csv('./data/players_sum_data.csv')
+players_data = pd.read_csv('./data/Players_Sum_Data.csv')
 # 利用上場時間做加權平均
 players_data['weighted_PER'] = players_data['PER'] * players_data['MIN']
 weighted_per = players_data.groupby('TEAM_ID').agg(

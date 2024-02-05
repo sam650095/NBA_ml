@@ -81,7 +81,7 @@ complete_data = complete_data.dropna(how='all', subset=complete_data.columns.dif
 #確定已經沒有NaN
 #print(complete_data.isna().any())
 
-#儲存到players_sum_data.csv
-complete_data.to_csv('./data/players_sum_data.csv', index=False)
+#儲存到Players_Sum_Data.csv
+complete_data.to_csv('./data/Players_Sum_Data.csv', index=False)
 
 print(complete_data)
