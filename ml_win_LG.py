@@ -3,10 +3,10 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
 
-data = pd.read_csv('./data/final_data.csv')
+data = pd.read_csv('./data/Final_Data.csv')
 
-X = data[['Weighted_PER']]
-y = data['WinPct']
+X = data[['Weighted_PER', 'FG_PCT', 'FG3_PCT', 'FT_PCT', 'REB', 'AST', 'STL', 'BLK', 'TOV', 'PF']]
+y = data['PTS']
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
