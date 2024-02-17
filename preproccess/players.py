@@ -2,7 +2,6 @@ import pandas as pd
 from nba_api.stats.static import teams
 from nba_api.stats.endpoints import commonteamroster
 from nba_api.stats.endpoints import playergamelog
-from sklearn.impute import KNNImputer
 import time
 
 # 取得隊伍資訊
