@@ -1,43 +1,43 @@
 from nba_api.stats.endpoints import leaguegamelog
 import pandas as pd
 import numpy as np
+
 pd.set_option('display.max_columns', None)
 
-def getgameinfo(year):
-    try:
-        gamelog = leaguegamelog.LeagueGameLog(season=str(year), season_type_all_star='Regular Season')
-        games_df = gamelog.get_data_frames()[0]
-        games_df.drop(['VIDEO_AVAILABLE'], axis=1, inplace=True)
-        games_df['GAME_DATE'] = pd.to_datetime(games_df['GAME_DATE'])
-        return games_df
-    except Exception as e:
-        print(f"Error occurred while fetching data for {year} season: {e}")
-        return pd.DataFrame()
+def get_season_data(year):
+    gamelog = leaguegamelog.LeagueGameLog(season=str(year), season_type_all_star='Regular Season').get_data_frames()[0]
+    gamelog.drop(['VIDEO_AVAILABLE'], axis=1, inplace=True)
+    gamelog['GAME_DATE'] = pd.to_datetime(gamelog['GAME_DATE'])
+    gamelog['SEASON_YEAR'] = str(year)  
+    return gamelog
 
-all_seasons_data = []
+# 每個賽季的平均數據
+seasons_data = []
+for year in range(2018, 2024):
+    season_data = get_season_data(year)
+    cols = ['FG_PCT', 'FG3_PCT', 'FT_PCT', 'REB', 'AST', 'STL', 'BLK', 'TOV', 'PF', 'PTS']
+    # 确保这些列是数值类型
+    for col in cols:
+        season_data[col] = pd.to_numeric(season_data[col], errors='coerce')
+    avd_data = season_data.groupby(['TEAM_ID', 'SEASON_YEAR'])[cols].mean().reset_index()
+    seasons_data.append(avd_data)
 
-for i in range(2018, 2024):
-    season_data = getgameinfo(i)
-    all_seasons_data.append(season_data)
+# 合并所有赛季的数据
+all_avg_Data = pd.concat(seasons_data, ignore_index=True)
 
-all_seasons_data = pd.concat(all_seasons_data, ignore_index=True)
-team_avg_stats = all_seasons_data.select_dtypes(include=[np.number]).groupby('TEAM_ID').mean()
-team_avg_stats.reset_index(inplace=True)
-
-columns_to_keep = ['TEAM_ID', 'FG_PCT', 'FG3_PCT', 'FT_PCT', 'REB', 'AST', 'STL', 'BLK', 'TOV', 'PF', 'PTS']
-team_avg_stats = team_avg_stats[columns_to_keep]
-
+# 加载球员的五年平均加权PER数据
 players_data = pd.read_csv('./data/Players_Sum_Data.csv')
-# 利用上場時間做加權平均
+# weighted_per_avg = players_data['PER'].mean()  # 假设这是已经计算好的
+
 players_data['weighted_PER'] = players_data['PER'] * players_data['MIN']
 weighted_per = players_data.groupby('TEAM_ID').agg(
     Total_MIN=('MIN', 'sum'),
     Total_weighted_PER=('weighted_PER', 'sum')
 )
 weighted_per['Weighted_PER'] = weighted_per['Total_weighted_PER'] / weighted_per['Total_MIN']
-weighted_per = weighted_per.reset_index()[['TEAM_ID','Weighted_PER']]
-merged_data = pd.merge(weighted_per, team_avg_stats, left_on='TEAM_ID', right_on='TEAM_ID')
 
-
-merged_data.to_csv("./data/Final_Data.csv", index=False)
-print("Team average stats data saved successfully.")
+# 为所有赛季数据添加五年平均加权PER
+all_avg_Data['Weighted_PER'] = weighted_per['Weighted_PER']
+# 保存结果
+all_avg_Data.to_csv("./data/Seasonal_Team_Avg_Stats_with_PER.csv", index=False)
+print("Seasonal team average stats with five-year weighted PER saved successfully.")
