@@ -1,14 +1,26 @@
 import pandas as pd
+import numpy as np
 import xgboost as xgb
 from sklearn.metrics import mean_squared_error
 from nba_api.stats.static import players
 from nba_api.stats.endpoints import playergamelog
 from sklearn.model_selection import train_test_split, GridSearchCV
-
-data = pd.read_csv('data/Data.csv')
-features = ['MIN', 'FGM', 'FGA', 'FG_PCT', 'FG3M', 'FG3A', 'FG3_PCT',
-            'FTM', 'FTA', 'FT_PCT', 'OREB', 'DREB', 'REB', 'AST',
-            'STL', 'BLK', 'TOV', 'PF']
+from preproccess.features_cal import calculate_per,calculate_ts,calculate_usg
+data = pd.read_csv('data/Players_Avg_Data.csv')
+def feature_calculations(df):
+    df['PER'] = np.nan
+    df['USG'] = np.nan
+    df['TS'] = np.nan
+    
+    for index, row in df.iterrows():
+        df.at[index, 'PER'] = calculate_per(row)
+        df.at[index, 'USG'] = calculate_usg(row)
+        df.at[index, 'TS'] = calculate_ts(row)
+        
+    return df
+# data = feature_calculations(data)
+features2 = ['MIN','FGM','FGA','FG_PCT','FG3M','FG3A','FG3_PCT','FTM','FTA','FT_PCT','OREB','DREB','REB','AST','STL','BLK','TOV','PF','PTS','GP','POSITION','USG','TS','TEAM_ID','Player_ID']
+features = ['MIN', 'FGM', 'FGA', 'FG_PCT', 'FG3M', 'FG3A', 'FG3_PCT','FTM', 'FTA', 'FT_PCT', 'OREB', 'DREB', 'REB', 'AST','STL', 'BLK', 'TOV', 'PF']
 X = data[features]
 y = data['PTS']
 
