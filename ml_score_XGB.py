@@ -5,7 +5,7 @@ from nba_api.stats.static import players
 from nba_api.stats.endpoints import playergamelog
 from sklearn.model_selection import train_test_split, GridSearchCV
 
-data = pd.read_csv('data/Players_Avg_Data.csv')
+data = pd.read_csv('data/Data.csv')
 features = ['MIN', 'FGM', 'FGA', 'FG_PCT', 'FG3M', 'FG3A', 'FG3_PCT',
             'FTM', 'FTA', 'FT_PCT', 'OREB', 'DREB', 'REB', 'AST',
             'STL', 'BLK', 'TOV', 'PF']
@@ -27,4 +27,4 @@ xg_reg.fit(X_train, y_train)
 
 y_pred_lebron = xg_reg.predict(X_lebron)
 
-print("勒布朗·詹姆斯的预测得分：", y_pred_lebron)
+print("勒布朗·詹姆斯的預測得分：", y_pred_lebron)

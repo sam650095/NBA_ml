@@ -2,6 +2,7 @@ import pandas as pd
 from nba_api.stats.static import teams
 from nba_api.stats.endpoints import commonteamroster
 from nba_api.stats.endpoints import playergamelog
+from features_cal import calculate_per,calculate_ts,calculate_usg
 import time
 def get_team_player_data(team_id, min_games=20):
     roster = commonteamroster.CommonTeamRoster(team_id=team_id).get_data_frames()[0]
@@ -9,7 +10,7 @@ def get_team_player_data(team_id, min_games=20):
     for _, row in roster.iterrows():
         player_id = row['PLAYER_ID']
         print(player_id)
-        seasons = [str(year) + '-' + str(year+1)[-2:] for year in range(2021, 2022)]
+        seasons = [str(year) + '-' + str(year+1)[-2:] for year in range(2016, 2022)]
         player_stats = []
         play_df = pd.DataFrame()
         for season in seasons:
@@ -25,7 +26,7 @@ def get_team_player_data(team_id, min_games=20):
             avg_stats = play_df.mean(numeric_only=True)
             avg_stats['GP'] = len(gamelog)  
             avg_stats['POSITION'] = row['POSITION']
-            avg_stats['PER'] = calculate_per(avg_stats)
+            # avg_stats['PER'] = calculate_per(avg_stats)
             avg_stats['USG'] = calculate_usg(avg_stats)
             avg_stats['TS'] = calculate_ts(avg_stats)
             avg_stats['TEAM_ID'] = team_id 
@@ -37,17 +38,6 @@ def get_team_player_data(team_id, min_games=20):
         return pd.concat(all_players_stats, ignore_index=True)
     else:
         return pd.DataFrame()
-def calculate_per(player_stats):
-    per = ((player_stats['PTS'] + player_stats['AST'] + player_stats['REB'] + player_stats['STL'] + player_stats['BLK']) - (player_stats['FGA'] - player_stats['FGM']) - (player_stats['FTA'] - player_stats['FTM']) - player_stats['TOV']) / player_stats['GP']
-    return per
-
-def calculate_usg(player_stats):
-    usg = (player_stats['FGA'] + 0.44 * player_stats['FTA'] + player_stats['TOV']) / (player_stats['MIN'] / 5)
-    return usg
-
-def calculate_ts(player_stats):
-    ts = player_stats['PTS']/ (2 * (player_stats['FGA'] + 0.44 * player_stats['FTA']))
-    return ts
 
 nba_teams = teams.get_teams()
 all_teams_stats = []
@@ -56,7 +46,7 @@ for team in nba_teams:
     team_stats = get_team_player_data(team_id)
     print(team_stats)
     all_teams_stats.append(team_stats)
-    break  # 如果想處理所有球隊，需要移除此行
+    # break  # 如果想處理所有球隊，需要移除此行
 
 complete_data = pd.concat(all_teams_stats, ignore_index=True)
 

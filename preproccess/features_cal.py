@@ -1,11 +1,11 @@
-def calculate_per(points, assists, rebounds, steals, blocks, field_goal_attempts, field_goals, free_throw_attempts, free_throws, turnovers, games_played):
-    per = ((points + assists + rebounds + steals + blocks) - (field_goal_attempts - field_goals) - (free_throw_attempts - free_throws) - turnovers) / games_played
+def calculate_per(player_stats):
+    per = ((player_stats['PTS'] + player_stats['AST'] + player_stats['REB'] + player_stats['STL'] + player_stats['BLK']) - (player_stats['FGA'] - player_stats['FGM']) - (player_stats['FTA'] - player_stats['FTM']) - player_stats['TOV']) / player_stats['GP']
     return per
 
-def calculate_usg(field_goal_attempts, free_throw_attempts, turnovers, team_minutes, player_minutes, team_field_goal_attempts, team_free_throw_attempts, team_turnovers):
-    usg = ((field_goal_attempts + 0.44 * free_throw_attempts + turnovers) * (team_minutes / 5)) / (player_minutes * (team_field_goal_attempts + 0.44 * team_free_throw_attempts + team_turnovers))
-    return usg * 100  # Convert to percentage
+def calculate_usg(player_stats):
+    usg = (player_stats['FGA'] + 0.44 * player_stats['FTA'] + player_stats['TOV']) / (player_stats['MIN'] / 5)
+    return usg
 
-def calculate_ts(points, field_goal_attempts, free_throw_attempts):
-    ts = points / (2 * (field_goal_attempts + 0.44 * free_throw_attempts)) * 100
+def calculate_ts(player_stats):
+    ts = player_stats['PTS']/ (2 * (player_stats['FGA'] + 0.44 * player_stats['FTA']))
     return ts
