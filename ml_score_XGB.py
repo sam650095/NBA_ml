@@ -4,7 +4,7 @@ import xgboost as xgb
 from sklearn.metrics import mean_squared_error
 from nba_api.stats.static import players
 from nba_api.stats.endpoints import playergamelog
-from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.model_selection import train_test_split
 from math import sqrt
 
 from preproccess.features_cal import calculate_per,calculate_ts,calculate_usg
@@ -41,7 +41,6 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 xg_reg.fit(X_train, y_train)
 
 y_pred_lebron = xg_reg.predict(X_lebron)
-
 print("勒布朗·詹姆斯的預測得分：", y_pred_lebron)
 
 y_actual_lebron = df_lebron_games['PTS'].head(10).values
