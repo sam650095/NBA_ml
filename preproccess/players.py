@@ -2,7 +2,7 @@ import pandas as pd
 from nba_api.stats.static import teams
 from nba_api.stats.endpoints import commonteamroster
 from nba_api.stats.endpoints import playergamelog
-from features_cal import calculate_per, calculate_ts, calculate_usg
+from features_cal import calculate_per, calculate_ts, calculate_usg, calculate_df
 import time
 
 def get_team_player_data(team_id, min_games=10):
@@ -24,6 +24,7 @@ def get_team_player_data(team_id, min_games=10):
                 avg_stats['PER'] = calculate_per(avg_stats)
                 avg_stats['USG'] = calculate_usg(avg_stats)
                 avg_stats['TS'] = calculate_ts(avg_stats)
+                avg_stats['DF'] = calculate_df(avg_stats)
                 avg_stats['TEAM_ID'] = team_id
                 avg_stats['SEASON'] = season  # 添加賽季列
                 all_players_stats.append(avg_stats.to_frame().T)
