@@ -101,13 +101,8 @@ def plot_predictions(y_test, y_pred_test, rmse_test,y_player, y_player_pred, rms
     plt.show(block=False)
 
 def draw(y_test, y_pred_test, rmse_test, y_player, y_player_pred, rmse_player,player, season):
-
-    
-    # 調用第一個函數
     plot_predictions(y_test, y_pred_test, rmse_test, y_player, y_player_pred, rmse_player)
     
-    # 調用第二個函數
     draw_shot_chart(player, season)
     
-    # 等待使用者關閉所有圖形
     plt.show(block=True)
