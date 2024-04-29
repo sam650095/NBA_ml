@@ -15,7 +15,7 @@ from nba_api.stats.endpoints import playergamelog
 
 from math import sqrt
 
-player = "Lebron James"
+player = input("Stephen Curry")
 season = '2023-24'
 data = pd.read_csv('data/Players_Avg_Data.csv')
 data['PER'] = data.apply(calculate_per, axis=1)

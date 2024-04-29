@@ -11,7 +11,7 @@ def get_team_player_data(team_id, min_games=10):
     for _, row in roster.iterrows():
         player_id = row['PLAYER_ID']
         print(player_id)
-        seasons = [str(year) + '-' + str(year+1)[-2:] for year in range(2017, 2022)]  # 修改為包含多個賽季
+        seasons = [str(year) + '-' + str(year+1)[-2:] for year in range(2017, 2022)]  
         for season in seasons:
             gamelog = playergamelog.PlayerGameLog(player_id=player_id, season=season).get_data_frames()[0]
             for col in ['MIN', 'FGM', 'FGA', 'FG_PCT', 'FG3M', 'FG3A', 'FG3_PCT', 'FTM', 'FTA', 'FT_PCT', 'OREB', 'DREB', 'REB', 'AST', 'STL', 'BLK', 'TOV', 'PF', 'PTS']:
