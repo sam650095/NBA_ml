@@ -63,7 +63,7 @@ def _2023players():
     player_accuracies = []
     count = 0
     for pid in player_ids:
-        if(count == 5): 
+        if(count == 20): 
             break
         if(int(pid) == pre_player_id):
             continue
