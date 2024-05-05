@@ -14,14 +14,13 @@ from nba_api.stats.static import players
 from nba_api.stats.endpoints import playergamelog
 
 from math import sqrt
+import matplotlib.pyplot as plt
 
-player = input("Stephen Curry")
+# player = input("Input NBA Player: ")
+player = "Lebron James"
 season = '2023-24'
 data = pd.read_csv('data/Players_Avg_Data.csv')
-data['PER'] = data.apply(calculate_per, axis=1)
-data['USG'] = data.apply(calculate_usg, axis=1)
-data['TS'] = data.apply(calculate_ts, axis=1)
-data['DF'] = data.apply(calculate_df, axis=1)
+player_ids = data['Player_ID']
 features = ['MIN', 'FGM', 'FGA', 'FG_PCT', 'FG3M', 'FG3A', 'FG3_PCT', 'FTM', 'FTA', 'FT_PCT', 'OREB', 'DREB', 'REB', 'AST', 'STL', 'BLK', 'TOV', 'PF', 'USG', 'TS', 'PER', 'DF']
 X = data[features]
 y = data['PTS']
@@ -41,7 +40,7 @@ def seperatedata():
     return y_test, y_pred_test, rmse_test
 
 # 選手2023-2024的預測
-def _2023playerdata():
+def _2023playerdata(player, season):
     player_info = players.find_players_by_full_name(player)[0]
     player_id = player_info['id']
     _2024gamelog = playergamelog.PlayerGameLog(player_id=player_id, season=season)
@@ -57,8 +56,26 @@ def _2023playerdata():
     y_player_pred = np.ceil(y_player_pred)
     rmse_player = sqrt(mean_squared_error(y_player, y_player_pred))
     return y_player, y_player_pred, rmse_player
+
+# 所有選手的
+def _2023players():
+    pre_player_id = 0
+    player_accuracies = []
+    count = 0
+    for pid in player_ids:
+        if(count == 5): 
+            break
+        if(int(pid) == pre_player_id):
+            continue
+        players_info = players.find_player_by_id(int(pid))
+        players_name = players_info['full_name']
+        y_player, y_player_pred, rmse_player = _2023playerdata(players_name, season)
+        accuracy = 1 - (sum(abs(y_player - y_player_pred)) / sum(y_player))
+        player_accuracies.append({'Name': players_name, 'Accuracy': accuracy})
+        pre_player_id = int(pid)
+        count += 1 # 刪掉
+    return player_accuracies
+player_data = _2023players()
 y_test, y_pred_test, rmse_test = seperatedata()
-y_player, y_player_pred, rmse_player = _2023playerdata()
-
-
-draw(y_test, y_pred_test, rmse_test, y_player, y_player_pred, rmse_player,player, season)
+y_player, y_player_pred, rmse_player = _2023playerdata(player, season)
+draw(player_data,y_test, y_pred_test, rmse_test, y_player, y_player_pred, rmse_player,player, season)

@@ -7,35 +7,68 @@ from nba_api.stats.endpoints import shotchartdetail
 from nba_api.stats.endpoints import playercareerstats
 import matplotlib.pyplot as plt
 import seaborn as sns
-
+import matplotlib as mpl
 from matplotlib import cm
 from matplotlib.patches import Circle, Rectangle, Arc, ConnectionPatch
 plt.ion()
-def court(ax=None, color="black", lw=1, outer_lines=False):
-    if ax is None:
-        ax = plt.gca()
-    hoop = Circle((0,0), radius=7.5, linewidth=lw, color=color, fill=False)
-    backboard = Rectangle((-30, -12.5), 60, 0, linewidth=lw, color=color)
-    outer_box = Rectangle((-80, -47.5), 160, 190, linewidth=lw, color=color, fill=False)
-    inner_box = Rectangle((-60, -47.5), 120, 190, linewidth=lw, color=color, fill=False)
-    top_free_throw = Arc((0, 142.5), 120, 120, theta1=0, theta2=180, linewidth=lw, color=color, fill=False)
-    bottom_free_throw = Arc((0, 142.5), 120, 120, theta1=180, theta2=0, linewidth=lw, color=color)
-    restricted = Arc((0, 0), 80, 80, theta1=0, theta2=180, linewidth=lw, color=color)
-    corner_three_a = Rectangle((-220, -47.5), 0, 140, linewidth=lw, color=color)
-    corner_three_b = Rectangle((220, -47.5), 0, 140, linewidth=lw, color=color)
-    three_arc = Arc((0, 0), 475, 475, theta1=22, theta2=158, linewidth=lw, color=color)
-    center_outer_arc = Arc((0, 422.5), 120, 120, theta1=180, theta2=0, linewidth=lw, color=color)
-    center_inner_arc = Arc((0, 422.5), 40, 40, theta1=180, theta2=0, linewidth=lw, color=color)
-    court_elements = [hoop, backboard, outer_box, inner_box, top_free_throw, bottom_free_throw, restricted, corner_three_a, corner_three_b, three_arc, center_outer_arc, center_inner_arc]
+def court(ax: mpl.axes, color="white") -> mpl.axes:
+    # Short corner 3PT lines
+    ax.plot([-220, -220], [0, 140], linewidth=2, color=color)
+    ax.plot([220, 220], [0, 140], linewidth=2, color=color)
+    # 3PT Arc
+    ax.add_artist(mpl.patches.Arc((0, 140), 440, 315, theta1=0, theta2=180, facecolor='none', edgecolor=color, lw=2))
+    # Lane and Key
+    ax.plot([-80, -80], [0, 190], linewidth=2, color=color)
+    ax.plot([80, 80], [0, 190], linewidth=2, color=color)
+    ax.plot([-60, -60], [0, 190], linewidth=2, color=color)
+    ax.plot([60, 60], [0, 190], linewidth=2, color=color)
+    ax.plot([-80, 80], [190, 190], linewidth=2, color=color)
+    ax.add_artist(mpl.patches.Circle((0, 190), 60, facecolor='none', edgecolor=color, lw=2))
+    ax.plot([-250, 250], [0, 0], linewidth=4, color='black')
+    # Rim
+    ax.add_artist(mpl.patches.Circle((0, 60), 15, facecolor='none', edgecolor=color, lw=2))
+    # Backboard
+    ax.plot([-30, 30], [40, 40], linewidth=2, color=color)
+    # Remove ticks
+    ax.set_xticks([])
+    ax.set_yticks([])
+    # Set axis limits
+    ax.set_xlim(-250, 250)
+    ax.set_ylim(0, 470)
+    return ax
 
-    if outer_lines:
-        outer_lines = Rectangle((-250, -47.5), 500, 470, linewidth=lw, color=color, fill=False)
-        court_elements.append(outer_lines)
+def shot_chart(df: pd.DataFrame, name: str, season=None, RA=True, extent=(-250, 250, 422.5, -47.5),
+                gridsize=25, cmap="Reds"):
+    fig = plt.figure( figsize=(6, 6), facecolor='white', edgecolor='white', dpi=100)
+    ax = fig.add_axes([0, 0, 1, 1], facecolor='white')
+    
+    # Plot hexbin of shots
+    if RA == True:
+            x = df.LOC_X
+            y = df.LOC_Y + 60
+            # Annotate player name and season
+            plt.text(-240, 430, f"{name}", fontsize=21, color='black')
+            season = f"NBA {season[0][:4]}-{season[-1][-2:]}"
+            plt.text(-250, -20, season, fontsize=8, color='black')
+            plt.text(110, -20, '@codegym_tech', fontsize=8, color='black')
+    else:
+            cond = ~((-45 < df.LOC_X) & (df.LOC_X < 45) & (-40 < df.LOC_Y) & (df.LOC_Y < 45))
+            x = df.LOC_X[cond]
+            y = df.LOC_Y[cond] + 60
+            # Annotate player name and season
+            plt.text(-240, 430, f"{name}", fontsize=21, color='black')
+            plt.text(-240, 400, "(Remove Restricted Area)", fontsize=10, color='red')
+            season = f"NBA {season[0][:4]}-{season[-1][-2:]}"
+            plt.text(-250, -20, season, fontsize=8, color='black')
+            plt.text(110, -20, '@codegym_tech', fontsize=8, color='black')
 
-    for element in court_elements:
-        ax.add_patch(element)
+    hexbin = ax.hexbin(x, y, cmap=cmap,
+            bins="log", gridsize=25, mincnt=2, extent=(-250, 250, 422.5, -47.5))
 
+    # Draw court
+    ax = court(ax, 'black')                
 
+    return fig
 def draw_shot_chart(player_name, season_id):
     # 球員資訊
     player_dict = players.find_players_by_full_name(player_name)[0]
@@ -48,33 +81,11 @@ def draw_shot_chart(player_name, season_id):
                                                 season_nullable=season_id,
                                                 context_measure_simple="FGA").get_data_frames()[0]
 
-    title = f"{player_name} Shot Chart {season_id}"
-
-    fig, ax = plt.subplots(figsize=(8, 6))
-    ax = shot_chart(shot_data, title=title, ax=ax)
+    shot_chart(shot_data,player_name,season_id)
     plt.show(block=False)
-
-def shot_chart(data, title="", ax=None):
-    court(ax)
-    x_missed = data[data['EVENT_TYPE'] == 'Missed Shot']['LOC_X']
-    y_missed = data[data['EVENT_TYPE'] == 'Missed Shot']['LOC_Y']
-    x_made = data[data['EVENT_TYPE'] == 'Made Shot']['LOC_X']
-    y_made = data[data['EVENT_TYPE'] == 'Made Shot']['LOC_Y']
-
-    ax.scatter(x_missed, y_missed, c='r', marker="x", s=90, linewidths=3)
-    ax.scatter(x_made, y_made, facecolors='none', edgecolors='g', marker='o', s=30, linewidths=3)
-
-    ax.set_title(title, fontsize=18)
-    return ax
-
-# player_name = sys.argv[1] if len(sys.argv) > 1 else "Lebron James"
-# season_id = sys.argv[2] if len(sys.argv) > 2 else "2023-24"
-# draw_shot_chart(player_name, season_id)
-
-# shotchart end
-# plot
+# -----------------------------------------------------------------------
 def plot_predictions(y_test, y_pred_test, rmse_test,y_player, y_player_pred, rmse_player):
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 7))
     # 繪製分類資料集的預測
     ax1.scatter(y_test, y_pred_test, color='darkorange', alpha=0.6, label='Actual vs. Predicted')
     ax1.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'k--', lw=2, label='Perfect Prediction')
@@ -99,10 +110,26 @@ def plot_predictions(y_test, y_pred_test, rmse_test,y_player, y_player_pred, rms
     table.scale(0.2, 2.52) 
     plt.tight_layout()
     plt.show(block=False)
+# -----------------------------------------------------------------------
+def show_players_acc(player_data):
+    player_names = [data['Name'] for data in player_data]
+    accuracies = [data['Accuracy'] for data in player_data]
 
-def draw(y_test, y_pred_test, rmse_test, y_player, y_player_pred, rmse_player,player, season):
+    plt.figure(figsize=(12, 6))
+    plt.plot(player_names, accuracies, 'b-o', markersize=5)
+    plt.xlabel('Player Name', fontsize=14)
+    plt.ylabel('Accuracy', fontsize=14)
+    plt.ylim(0, 1)
+    plt.xticks(rotation=45, ha='right')
+    plt.legend(['Prediction Accuracy'], loc='upper left')
+    plt.subplots_adjust(bottom=0.3)
+    plt.show()
+# -----------------------------------------------------------------------
+
+def draw(player_data, y_test, y_pred_test, rmse_test, y_player, y_player_pred, rmse_player,player, season):
     plot_predictions(y_test, y_pred_test, rmse_test, y_player, y_player_pred, rmse_player)
     
     draw_shot_chart(player, season)
-    
+
+    show_players_acc(player_data)
     plt.show(block=True)

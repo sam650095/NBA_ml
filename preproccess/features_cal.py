@@ -10,6 +10,8 @@ def calculate_usg(player_stats):
     return usg
 
 def calculate_ts(player_stats):
+    if 2 * (player_stats['FGA'] + 0.44 * player_stats['FTA']) == 0:
+        return 0
     ts = player_stats['PTS']/ (2 * (player_stats['FGA'] + 0.44 * player_stats['FTA']))
     return ts
 def calculate_df(player_status):
