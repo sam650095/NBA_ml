@@ -15,5 +15,7 @@ def calculate_ts(player_stats):
     ts = player_stats['PTS']/ (2 * (player_stats['FGA'] + 0.44 * player_stats['FTA']))
     return ts
 def calculate_df(player_status):
+    if player_status['MIN']<=0:
+        return 0
     df = (player_status['REB']+player_status['BLK']+player_status['STL'])-player_status['PF']/player_status['MIN']
     return df

@@ -9,12 +9,13 @@ from sklearn.model_selection import train_test_split, RandomizedSearchCV
 from preproccess.features_cal import calculate_per, calculate_ts, calculate_usg, calculate_df
 # graph
 from draw import draw
+from accuracy import show_players_acc
 # nba_api
 from nba_api.stats.static import players
 from nba_api.stats.endpoints import playergamelog
 
 from math import sqrt
-import matplotlib.pyplot as plt
+import time
 
 # player = input("Input NBA Player: ")
 player = "Lebron James"
@@ -61,21 +62,25 @@ def _2023playerdata(player, season):
 def _2023players():
     pre_player_id = 0
     player_accuracies = []
-    count = 0
+    count =1
     for pid in player_ids:
-        if(count == 20): 
-            break
         if(int(pid) == pre_player_id):
             continue
+        start_time = time.time()
+        print(count,pid)
         players_info = players.find_player_by_id(int(pid))
         players_name = players_info['full_name']
         y_player, y_player_pred, rmse_player = _2023playerdata(players_name, season)
         accuracy = 1 - (sum(abs(y_player - y_player_pred)) / sum(y_player))
         player_accuracies.append({'Name': players_name, 'Accuracy': accuracy})
         pre_player_id = int(pid)
-        count += 1 # 刪掉
+        end_time = time.time()
+        print(f"Time: {end_time - start_time:.6f} seconds")
+        count+=1
     return player_accuracies
+
 player_data = _2023players()
-y_test, y_pred_test, rmse_test = seperatedata()
-y_player, y_player_pred, rmse_player = _2023playerdata(player, season)
-draw(player_data,y_test, y_pred_test, rmse_test, y_player, y_player_pred, rmse_player,player, season)
+# y_test, y_pred_test, rmse_test = seperatedata()
+# y_player, y_player_pred, rmse_player = _2023playerdata(player, season)
+# draw(player_data,y_test, y_pred_test, rmse_test, y_player, y_player_pred, rmse_player,player, season)
+show_players_acc(player_data)
