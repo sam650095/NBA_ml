@@ -46,10 +46,13 @@ def _2023playerdata(player, season):
     player_id = player_info['id']
     _2024gamelog = playergamelog.PlayerGameLog(player_id=player_id, season=season)
     df = _2024gamelog.get_data_frames()[0]
+    # if (df.empty): 
+    #     return 1.0,1.0,0
     df['PER'] = df.apply(calculate_per, axis=1)
     df['USG'] = df.apply(calculate_usg, axis=1)
     df['TS'] = df.apply(calculate_ts, axis=1)
     df['DF'] = df.apply(calculate_df, axis=1)
+    
     X_player = df[features].tail(10)
     y_player = df['PTS'].tail(10)
     rs.fit(X, y)
@@ -64,23 +67,28 @@ def _2023players():
     player_accuracies = []
     count =1
     for pid in player_ids:
-        if(int(pid) == pre_player_id):
-            continue
-        start_time = time.time()
+        if int(pid) == pre_player_id:continue
         print(count,pid)
+        start_time = time.time()
         players_info = players.find_player_by_id(int(pid))
         players_name = players_info['full_name']
-        y_player, y_player_pred, rmse_player = _2023playerdata(players_name, season)
-        accuracy = 1 - (sum(abs(y_player - y_player_pred)) / sum(y_player))
-        player_accuracies.append({'Name': players_name, 'Accuracy': accuracy})
-        pre_player_id = int(pid)
-        end_time = time.time()
-        print(f"Time: {end_time - start_time:.6f} seconds")
-        count+=1
+        try:
+            y_player, y_player_pred, rmse_player = _2023playerdata(players_name, season)
+            # print("y_player",y_player,"y_pred",y_player_pred,"rmse_player",rmse_player)
+            accuracy = 1 - (sum(abs(y_player - y_player_pred)) / sum(y_player))
+            player_accuracies.append({'Name': players_name, 'Accuracy': accuracy})
+            pre_player_id = int(pid)
+            end_time = time.time()
+            print(f"Time: {end_time - start_time:.6f} seconds")
+            count+=1
+        except:
+            print(players_name,"沒有足夠資料")
+            continue
+        
     return player_accuracies
 
 player_data = _2023players()
-# y_test, y_pred_test, rmse_test = seperatedata()
-# y_player, y_player_pred, rmse_player = _2023playerdata(player, season)
-# draw(player_data,y_test, y_pred_test, rmse_test, y_player, y_player_pred, rmse_player,player, season)
+y_test, y_pred_test, rmse_test = seperatedata()
+y_player, y_player_pred, rmse_player = _2023playerdata(player, season)
+draw(y_test, y_pred_test, rmse_test, y_player, y_player_pred, rmse_player,player, season)
 show_players_acc(player_data)

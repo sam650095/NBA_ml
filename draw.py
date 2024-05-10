@@ -8,8 +8,8 @@ from nba_api.stats.endpoints import playercareerstats
 import matplotlib.pyplot as plt
 import seaborn as sns
 import matplotlib as mpl
-from matplotlib import cm
-from matplotlib.patches import Circle, Rectangle, Arc, ConnectionPatch
+
+# -----------------------------------------------------------------------
 plt.ion()
 def court(ax: mpl.axes, color="white") -> mpl.axes:
     # Short corner 3PT lines
@@ -110,26 +110,12 @@ def plot_predictions(y_test, y_pred_test, rmse_test,y_player, y_player_pred, rms
     table.scale(0.2, 2.52) 
     plt.tight_layout()
     plt.show(block=False)
-# -----------------------------------------------------------------------
-def show_players_acc(player_data):
-    player_names = [data['Name'] for data in player_data]
-    accuracies = [data['Accuracy'] for data in player_data]
 
-    plt.figure(figsize=(12, 6))
-    plt.plot(player_names, accuracies, 'b-o', markersize=5)
-    plt.xlabel('Player Name', fontsize=14)
-    plt.ylabel('Accuracy', fontsize=14)
-    plt.ylim(0, 1)
-    plt.xticks(rotation=45, ha='right')
-    plt.legend(['Prediction Accuracy'], loc='upper left')
-    plt.subplots_adjust(bottom=0.3)
-    plt.show()
 # -----------------------------------------------------------------------
 
-def draw(player_data, y_test, y_pred_test, rmse_test, y_player, y_player_pred, rmse_player,player, season):
+def draw( y_test, y_pred_test, rmse_test, y_player, y_player_pred, rmse_player,player, season):
     plot_predictions(y_test, y_pred_test, rmse_test, y_player, y_player_pred, rmse_player)
     
     draw_shot_chart(player, season)
 
-    show_players_acc(player_data)
     plt.show(block=True)
