@@ -84,7 +84,8 @@ def _2023players():
         except:
             print(players_name,"沒有足夠資料")
             continue
-        
+
+    AVG_accuracy = (a for a in player_accuracies)
     return player_accuracies
 
 player_data = _2023players()
